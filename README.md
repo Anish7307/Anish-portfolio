@@ -16,7 +16,7 @@ Copy `.env.example` to `.env` and fill in your values. Use a long random `JWT_SE
 ```bash
 npm run dev
 ```
-The API starts on `http://localhost:5000`. On first start, it creates the admin account from the environment variables and a default profile.
+The API starts on `https://anish-portfolio-vo07.onrender.com`. On first start, it creates the admin account from the environment variables and a default profile.
 
 ## 2. Configure the frontend
 Open a second terminal:
