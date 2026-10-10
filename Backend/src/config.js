@@ -9,11 +9,17 @@ export const isProd = process.env.NODE_ENV === 'production';
 // file) and upload.js (relative to process.cwd()) could point at different folders.
 export const UPLOADS_DIR = path.resolve(__dirname, '../uploads');
 
-// CLIENT_URL may hold several comma-separated origins.
-export const CLIENT_ORIGINS = (process.env.CLIENT_URL || 'http://localhost:5173')
+
+// Allow multiple comma-separated frontend origins.
+export const CLIENT_ORIGINS = (
+  process.env.CLIENT_ORIGINS ||
+  process.env.CLIENT_URL ||
+  'http://localhost:5173'
+)
   .split(',')
-  .map(s => s.trim().replace(/\/$/, ''))
+  .map(s => s.trim().replace(/\/+$/, ''))
   .filter(Boolean);
+
 
 export const COOKIE_NAME = 'portfolio_token';
 
