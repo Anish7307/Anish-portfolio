@@ -4,72 +4,87 @@ import api, { assetUrl } from './api.js';
 import React from "react";
 const emptyProject = { title: '', description: '', technologies: '', githubUrl: '', liveUrl: '', imageUrl: '', featured: false };
 function PublicHome() {
-  const [data, setData] = useState(null); const [error, setError] = useState('');
-  useEffect(() => { api.get('/portfolio').then(r => setData(r.data)).catch(() => setError('Could not load portfolio. Check that the server is running.')); }, []);
-  if (error) return <main className="container"><p className="notice">{error}</p></main>;
-  if (!data) return <main className="container"><p>Loading portfolio...</p></main>;
-  const p = data.profile || {};
-  return <><header className="topbar"><div className="container nav"><a href="#home" className="brand">{p.name || 'My Portfolio'}</a><nav><a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#certificates">Certificates</a><a href="#contact">Contact</a></nav><Link className="small-link" to="/admin/login">Admin</Link></div></header>
-    <main><section className="hero container" id="home">{p.photoUrl && <img className="profile-photo" src={assetUrl(p.photoUrl)} alt={p.name || 'Profile photo'} />}<p className="eyebrow">HELLO, I'M</p><h1>{p.name || 'Your Name'}</h1><h2>{p.headline || 'Full Stack Developer'}</h2><p className="lead">{p.about}</p><div className="actions"><a className="button" href="#projects">View projects</a>{p.resumeUrl && (
-  <a
-    className="button secondary"
-    href={assetUrl(p.resumeUrl)}
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    View Resume (PDF)
-  </a>
-)}</div></section>
-      <section className="section container" id="about"><h2>About Me</h2><p>{p.about}</p><p>{p.location}</p></section>
-      <section className="section container" id="skills"><h2>Technical Skills</h2><div className="chips">{(p.skills || []).map(s => <span className="chip" key={s}>{s}</span>)}</div></section>
-      <section className="section container" id="projects"><h2>Projects</h2>{data.projects?.length ? <div className="cards">{data.projects.map(project => <article className="card" key={project._id}>{project.imageUrl && <img className="project-image" src={assetUrl(project.imageUrl)} alt={project.title} />}<div className="card-body"><h3>{project.title} {project.featured && <span className="tag">Featured</span>}</h3><p>{project.description}</p><div className="chips">{(project.technologies || []).map(t => <span className="chip" key={t}>{t}</span>)}</div><div className="card-links">{project.githubUrl && <a href={project.githubUrl} target="_blank" rel="noreferrer">GitHub ↗</a>}{project.liveUrl && <a href={project.liveUrl} target="_blank" rel="noreferrer">Live demo ↗</a>}</div></div></article>)}</div> : <p>Projects will be added here soon.</p>}</section>
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
-<section className="section container" id="certificates">
-  <h2>Certificates</h2>
+  useEffect(() => {
+    const controller = new AbortController();
 
-  {data.certificates?.length ? (
-    <div className="cards">
-      {data.certificates.map((c) => (
-        <article className="card cert" key={c._id}>
-          <div className="card-body">
-            <h3>{c.title}</h3>
+    async function loadPortfolio() {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await api.get('/portfolio', { signal: controller.signal });
+        setData(response.data);
+      } catch (err) {
+        if (err.code !== 'ERR_CANCELED' && err.name !== 'CanceledError') {
+          setError('Portfolio details could not load right now. Please try again.');
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
 
-            <p>
-              {c.issuer}
-              {c.issueDate && ` · ${c.issueDate}`}
-            </p>
+    loadPortfolio();
+    return () => controller.abort();
+  }, []);
 
-            {c.fileUrl && (
-              <div className="card-links">
-                <a
-                  href={assetUrl(c.fileUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View Certificate ↗
-                </a>
+  const p = data?.profile || {};
+  const projects = data?.projects || [];
+  const certificates = data?.certificates || [];
 
-                {c.verifyUrl && (
-                  <a
-                    href={c.verifyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Verify ↗
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-        </article>
-      ))}
-    </div>
-  ) : (
-    <p>Certificates will be added here soon.</p>
-  )}
-</section>
-      <section className="section container" id="contact"><h2>Contact</h2><p>I'm open to fresher and entry-level developer opportunities.</p><div className="card-links">{p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}{p.github && <a href={p.github} target="_blank" rel="noreferrer">GitHub ↗</a>}{p.linkedin && <a href={p.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a>}</div></section></main><footer className="footer">© {new Date().getFullYear()} {p.name || 'Portfolio'}</footer></>;
+  return <>
+    <header className="topbar">
+      <div className="container nav">
+        <a href="#home" className="brand">{p.name || 'My Portfolio'}</a>
+        <nav aria-label="Main navigation">
+          <a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#certificates">Certificates</a><a href="#contact">Contact</a>
+        </nav>
+        <Link className="small-link" to="/admin/login">Admin</Link>
+      </div>
+    </header>
+
+    <main>
+      <section className="hero container" id="home">
+        {p.photoUrl && <img className="profile-photo" src={assetUrl(p.photoUrl)} alt={p.name || 'Profile photo'} width="160" height="160" fetchPriority="high" decoding="async" />}
+        <p className="eyebrow">HELLO, I'M</p>
+        <h1>{p.name || 'Anish Tiwari'}</h1>
+        <h2>{p.headline || 'Full Stack MERN Developer'}</h2>
+        <p className="lead">{p.about || 'I build responsive web applications using modern web technologies.'}</p>
+        <div className="actions">
+          <a className="button" href="#projects">View projects</a>
+          {p.resumeUrl && <a className="button secondary" href={assetUrl(p.resumeUrl)} target="_blank" rel="noopener noreferrer">View Resume (PDF)</a>}
+        </div>
+        {loading && <p className="loading-hint" role="status">Loading portfolio details…</p>}
+        {error && <div className="notice" role="alert"><p>{error}</p><button className="button secondary" type="button" onClick={() => window.location.reload()}>Retry</button></div>}
+      </section>
+
+      <section className="section container" id="about"><h2>About Me</h2><p>{p.about || (loading ? 'Loading introduction…' : '')}</p>{p.location && <p>{p.location}</p>}</section>
+      <section className="section container" id="skills"><h2>Technical Skills</h2><div className="chips">{(p.skills || []).map(s => <span className="chip" key={s}>{s}</span>)}</div>{loading && <p>Loading skills…</p>}</section>
+
+      <section className="section container" id="projects">
+        <h2>Projects</h2>
+        {projects.length ? <div className="cards">{projects.map(project => <article className="card" key={project._id}>
+          {project.imageUrl && <img className="project-image" src={assetUrl(project.imageUrl)} alt={project.title} loading="lazy" decoding="async" />}
+          <div className="card-body"><h3>{project.title} {project.featured && <span className="tag">Featured</span>}</h3><p>{project.description}</p>
+            <div className="chips">{(project.technologies || []).map(t => <span className="chip" key={t}>{t}</span>)}</div>
+            <div className="card-links">{project.githubUrl && <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">GitHub ↗</a>}{project.liveUrl && <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">Live demo ↗</a>}</div>
+          </div></article>)}</div> : <p>{loading ? 'Loading projects…' : 'Projects will be added here soon.'}</p>}
+      </section>
+
+      <section className="section container" id="certificates"><h2>Certificates</h2>
+        {certificates.length ? <div className="cards">{certificates.map(c => <article className="card cert" key={c._id}><div className="card-body"><h3>{c.title}</h3><p>{c.issuer}{c.issueDate && ` · ${c.issueDate}`}</p>
+          {c.fileUrl && <div className="card-links"><a href={assetUrl(c.fileUrl)} target="_blank" rel="noopener noreferrer">View Certificate ↗</a>{c.verifyUrl && <a href={c.verifyUrl} target="_blank" rel="noopener noreferrer">Verify ↗</a>}</div>}
+        </div></article>)}</div> : <p>{loading ? 'Loading certificates…' : 'Certificates will be added here soon.'}</p>}
+      </section>
+
+      <section className="section container" id="contact"><h2>Contact</h2><p>I'm open to fresher and entry-level developer opportunities.</p><div className="card-links">{p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}{p.github && <a href={p.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>}{p.linkedin && <a href={p.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>}</div></section>
+    </main>
+    <footer className="footer">© {new Date().getFullYear()} {p.name || 'Portfolio'}</footer>
+  </>;
 }
+
 function Login() {
   const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const navigate = useNavigate();
   async function submit(e) { e.preventDefault(); setError(''); setBusy(true); try { await api.post('/auth/login', { email, password }); navigate('/admin/dashboard'); } catch (err) { setError(err.response?.data?.message || 'Login failed. Check the API server.'); } finally { setBusy(false); } }
@@ -121,13 +136,13 @@ async function addCertificate(e) {
   
 async function uploadResume(e) {
   e.preventDefault();
-
-  const form = new FormData(e.currentTarget);
+  const formElement = e.currentTarget;
+  const form = new FormData(formElement);
 
   try {
     await api.post('/admin/resume', form);
 
-    e.currentTarget.reset();
+    formElement.reset();
     flash('Resume replaced.');
     await load();
   } catch (err) {
