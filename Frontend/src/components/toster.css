@@ -1,0 +1,49 @@
+
+.intro-toast-text {
+  
+  left: 28px;
+  bottom: 24px;
+  z-index: 9999;
+
+  max-width: calc(100vw - 56px);
+
+  color: #1769aa;
+  font-family: "Courier New", monospace;
+  font-size:17px;
+  font-weight: 600;
+  line-height: 1.7;
+
+  overflow-wrap: anywhere;
+  text-align: left;
+
+  pointer-events: none;
+}
+
+.typing-cursor {
+  display: inline-block;
+  margin-left: 3px;
+  color: #1769aa;
+  animation: cursor-blink 0.7s steps(2, start) infinite;
+}
+
+@keyframes cursor-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 600px) {
+  .intro-toast-text {
+    left: 14px;
+    bottom: 16px;
+    font-size: 12px;
+    max-width: calc(100vw - 28px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-cursor {
+    animation: none;
+  }
+}
+

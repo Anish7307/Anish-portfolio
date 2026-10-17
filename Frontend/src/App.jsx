@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Route, Routes, useNavigate } from 'react-router-dom';
 import api, { assetUrl } from './api.js';
 import React from "react";
+import Toast from "./components/toster.jsx";
 const emptyProject = { title: '', description: '', technologies: '', githubUrl: '', liveUrl: '', imageUrl: '', featured: false };
 function PublicHome() {
   const [data, setData] = useState(null);
@@ -48,7 +49,9 @@ function PublicHome() {
     <main>
       <section className="hero container" id="home">
         {p.photoUrl && <img className="profile-photo" src={assetUrl(p.photoUrl)} alt={p.name || 'Profile photo'} width="160" height="160" fetchPriority="high" decoding="async" />}
-        <p className="eyebrow">HELLO, I'M</p>
+        <p className="eyebrow"><Toast/></p>
+       
+          
         <h1>{p.name || 'Anish Tiwari'}</h1>
         <h2>{p.headline || 'Full Stack MERN Developer'}</h2>
         <p className="lead">{p.about || 'I build responsive web applications using modern web technologies.'}</p>
